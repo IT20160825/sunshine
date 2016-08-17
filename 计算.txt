@@ -1,0 +1,405 @@
+//计算提成
+	public function jisuantichen($userid,$money){
+        $one = $money * 0.6;
+        $two = $money * 0.24;
+        $three = $money * 0.16;
+        $db_huiyuan = D('huiyuan_info');
+        $db_agents = D('agents');
+        $db_user = D('car_user');
+		$db_baoxianpay=D('baoxianpay');
+		$db_chongzhi=D('chongzhi');
+		$db_agentmoneylog=D('agentmoneylog');
+        $agentstype = $db_user->where("id=" . $userid)->getField("agentstype");
+        $agentsid = $db_user->where("id=" . $userid)->getField("agentsid");
+		$times=date("Y-m-d H:i:s",time());
+        switch ($agentstype) {
+            case 1://第一层
+                $agentstype_one = $db_user->where("id=" . $agentsid)->getField("agentstype");
+                $agentsid_one = $db_user->where("id=" . $agentsid)->getField("agentsid");
+                //增加第一次价格
+                $info = $db_user->where("id=" . $agentsid_one)->find();
+                $info['money'] += $one;
+                $db_user->where("id=" . $agentsid_one)->save($info);
+				$datamlog1['createtime']=$times;
+				$datamlog1['type']=3;
+				$datamlog1['money']=$one;
+				$datamlog1['overage']= $info['money'];
+				$datamlog1['userid']=$agentsid_one;
+				$db_baoxianpay->add($datamlog1);
+                switch ($agentstype_one) {
+                    case 1://第二层
+                        $agentstype_two = $db_user->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_user->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_user->where("id=" . $agentstype_two)->find();
+                        $info['money'] += $two;
+                        $db_user->where("id=" . $agentstype_two)->save($info);
+						$datamlog1['createtime']=$times;
+						$datamlog1['type']=3;
+						$datamlog1['money']=$two;
+						$datamlog1['overage']= $info['money'];
+						$datamlog1['userid']=$agentstype_two;
+						$db_baoxianpay->add($datamlog1);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_user->where("id=" . $agentsid_two)->getField("id");
+                                //增加第三次价格
+                                $info = $db_user->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_user->where("id=" . $agentsid_three)->save($info);
+								$datamlog1['createtime']=$times;
+								$datamlog1['type']=3;
+								$datamlog1['money']=$three;
+								$datamlog1['overage']= $info['money'];
+								$datamlog1['userid']=$agentsid_three;
+								$db_baoxianpay->add($datamlog1);
+                                break;
+                            case 2:
+                                $huiyuan_three = $db_huiyuan->where("ttedu_id=" . $agentsid_two)->getField("ttedu_id");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("ttedu_id=" . $huiyuan_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("ttedu_id=" . $huiyuan_three)->save($info);
+								$datamlog2['createtime']=$times;
+								$datamlog2['type']=14;
+								$datamlog2['money']=$three;
+								$datamlog2['overage']= $info['money'];
+								$datamlog2['stuid']= $huiyuan_three;
+								$db_chongzhi->add($datamlog2);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_agents->where("id=" . $agentsid_two)->getField("id");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $huiyuan_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $huiyuan_three)->save($info);
+								$datamlog4['createtime']=$times;
+								$datamlog4['type']=3;
+								$datamlog4['money']=$three;
+								$datamlog4['overage']= $info['money'];
+								$datamlog4['userid']= $huiyuan_three;
+								$db_agentmoneylog->add($datamlog2);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 2://第二层
+                        $agentstype_two = $db_huiyuan->where("ttedu_id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_huiyuan->where("ttedu_id=" . $agentsid_one)->getField("ttedu_id");
+                        //增加第二次价格
+                        $info = $db_huiyuan->where("ttedu_id=" . $agentstype_two)->find();
+                        $info['money'] += $two;
+                        $db_huiyuan->where("id=" . $agentstype_two)->save($info);
+						$datamlog2['createtime']=$times;
+						$datamlog2['type']=14;
+						$datamlog2['money']=$two;
+						$datamlog2['overage']= $info['money'];
+						$datamlog2['stuid']= $agentstype_two;
+						$db_chongzhi->add($datamlog2);
+                        switch ($agentstype_two) {
+                            case 5://第三层
+                                $agentsid_three = $db_user->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_user->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_user->where("id=" . $agentsid_three)->save($info);
+								$datamlog1['createtime']=$times;
+								$datamlog1['type']=3;
+								$datamlog1['money']=$three;
+								$datamlog1['overage']= $info['money'];
+								$datamlog1['userid']=$agentsid_three;
+								$db_baoxianpay->add($datamlog1);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("ttedu_id=" . $agentsid_two)->getField("ttedu_id");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("ttedu_id=" . $huiyuan_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("ttedu_id=" . $huiyuan_three)->save($info);
+								$datamlog2['createtime']=$times;
+								$datamlog2['type']=14;
+								$datamlog2['money']=$three;
+								$datamlog2['overage']= $info['money'];
+								$datamlog2['stuid']= $huiyuan_three;
+								$db_chongzhi->add($datamlog2);
+                                break;
+                            case 1:
+                                $huiyuan_three = $db_agents->where("id=" . $agentsid_two)->getField("id");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $huiyuan_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $huiyuan_three)->save($info);
+								$datamlog4['createtime']=$times;
+								$datamlog4['type']=3;
+								$datamlog4['money']=$three;
+								$datamlog4['overage']= $info['money'];
+								$datamlog4['userid']= $huiyuan_three;
+								$db_agentmoneylog->add($datamlog2);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 4://第二层
+                        
+                        $agentsid_two = $db_agents->where("id=" . $agentsid_one)->getField("parentid");
+                        //增加第二次价格
+                        $info = $db_agents->where("id=" . $agentsid_one)->find();
+                        $info['money'] += $two;
+                        $db_agents->where("id=" . $agentsid_one)->save($info);
+						$datamlog4['createtime']=$times;
+						$datamlog4['type']=3;
+						$datamlog4['money']=$two;
+						$datamlog4['overage']= $info['money'];
+						$datamlog4['userid']= $agentsid_one;
+						$db_agentmoneylog->add($datamlog2);
+                        //第三层
+						
+						//增加第三次价格
+						$info = $db_agents->where("id=" . $agentsid_two)->find();
+						$info['money'] += $three;
+						$db_agents->where("id=" . $agentsid_two)->save($info);
+						$datamlog4['createtime']=$times;
+						$datamlog4['type']=3;
+						$datamlog4['money']=$three;
+						$datamlog4['overage']= $info['money'];
+						$datamlog4['userid']= $agentsid_two;
+						$db_agentmoneylog->add($datamlog2);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 2://第一层
+                $agentstype_one = $db_huiyuan->where("ttedu_id=" . $agentsid)->getField("agentstype");
+                $agentsid_one = $db_huiyuan->where("ttedu_id=" . $agentsid)->getField("agentsid");
+                //增加第一次价格
+                $info = $db_huiyuan->where("ttedu_id=" . $agentsid)->find();
+                $info['money'] += $one;
+                $db_huiyuan->where("ttedu_id=" . $agentsid)->save($info);
+				$datamlog2['createtime']=$times;
+				$datamlog2['type']=14;
+				$datamlog2['money']=$one;
+				$datamlog2['overage']= $info['money'];
+				$datamlog2['stuid']= $agentsid;
+				$db_chongzhi->add($datamlog2);
+                switch ($agentstype_one) {
+                    case 1://第二层
+                        $agentstype_two = $db_agents->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_agents->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_agents->where("id=" . $agentsid_one)->find();
+                        $info['money'] += $two;
+                        $db_agents->where("id=" . $agentsid_one)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 4://第二层
+                        $agentstype_two = $db_agents->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_agents->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_agents->where("id=" . $agentsid_two)->find();
+                        $info['money'] += $two;
+                        $db_agents->where("id=" . $agentsid_two)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 5://第二层
+                        $agentstype_two = $db_user->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_user->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_user->where("id=" . $agentsid_two)->find();
+                        $info['money'] += $two;
+                        $db_user->where("id=" . $agentsid_two)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 5://第一层
+                $agentstype_one = $db_user->where("id=" . $agentsid)->getField("agentstype");
+                $agentsid_one = $db_user->where("id=" . $agentsid)->getField("agentsid");
+                //增加第一次价格
+                $info = $db_user->where("id=" . $agentsid_one)->find();
+                $info['money'] += $one;
+                $db_user->where("id=" . $agentsid_one)->save($info);
+                switch ($agentstype_one) {
+                    case 1://第二层
+                        $agentstype_two = $db_agents->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_agents->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_agents->where("id=" . $agentsid_two)->find();
+                        $info['money'] += $two;
+                        $db_agents->where("id=" . $agentsid_two)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 4://第二层
+                        $agentstype_two = $db_agents->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_agents->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_agents->where("id=" . $agentsid_two)->find();
+                        $info['money'] += $two;
+                        $db_agents->where("id=" . $agentsid_two)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 5://第二层
+                        $agentstype_two = $db_user->where("id=" . $agentsid_one)->getField("agentstype");
+                        $agentsid_two = $db_user->where("id=" . $agentsid_one)->getField("agentsid");
+                        //增加第二次价格
+                        $info = $db_user->where("id=" . $agentsid_two)->find();
+                        $info['money'] += $two;
+                        $db_user->where("id=" . $agentsid_two)->save($info);
+                        switch ($agentstype_two) {
+                            case 1://第三层
+                                $agentsid_three = $db_agents->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_agents->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_agents->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 4:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            case 5:
+                                $huiyuan_three = $db_huiyuan->where("id=" . $agentsid_two)->getField("agentsid");
+                                //增加第三次价格
+                                $info = $db_huiyuan->where("id=" . $agentsid_three)->find();
+                                $info['money'] += $three;
+                                $db_huiyuan->where("id=" . $agentsid_three)->save($info);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
+	}
